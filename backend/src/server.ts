@@ -77,13 +77,19 @@ app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 // Static Files
 // ============================================
 const uploadDir = path.join(process.cwd(), 'uploads');
-logger.info(`Serving static files from: ${uploadDir}`);
+const publicDir = path.join(process.cwd(), 'public');
+
+logger.info(`Serving uploads from: ${uploadDir}`);
+logger.info(`Serving frontend from: ${publicDir}`);
 
 app.use('/uploads', (req, res, next) => {
     res.header("Access-Control-Allow-Origin", "*");
     res.header("Cross-Origin-Resource-Policy", "cross-origin");
     next();
 }, express.static(uploadDir));
+
+// Serve frontend static files
+app.use(express.static(publicDir));
 
 // ============================================
 // Health Check Routes
@@ -117,6 +123,23 @@ app.use('/api/reports', reportRoutes); // Report routes
 // ============================================
 // Error Handling
 // ============================================
+
+// SPA Fallback - Serve index.html for any unknown routes (except API)
+app.get('*', (req, res, next) => {
+    // Skip if request is for API
+    if (req.path.startsWith('/api')) {
+        return next();
+    }
+
+    // Serve index.html
+    const indexPath = path.join(process.cwd(), 'public', 'index.html');
+    res.sendFile(indexPath, (err) => {
+        if (err) {
+            // If index.html doesn't exist (e.g. backend only mode), pass to 404
+            next();
+        }
+    });
+});
 
 // 404 handler
 app.use(notFoundHandler);
