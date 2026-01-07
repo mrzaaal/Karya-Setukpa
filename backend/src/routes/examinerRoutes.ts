@@ -1,6 +1,6 @@
 import express from 'express';
 import { getExaminers, createExaminer, updateExaminer, deleteExaminer, getAssignedExaminees } from '../controllers/examinerController.js';
-import { authenticate, authorize } from '../middleware/auth';
+import { authenticate, authorize } from '../middleware/auth.js';
 import { UserRole } from '@prisma/client';
 import { importExaminers, downloadExaminerTemplate } from '../controllers/examinerImportController.js';
 import multer from 'multer';

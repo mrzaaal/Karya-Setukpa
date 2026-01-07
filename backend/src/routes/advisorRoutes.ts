@@ -1,6 +1,6 @@
 import express from 'express';
 import { getAdvisors, createAdvisor, updateAdvisor, deleteAdvisor, getAssignedStudents } from '../controllers/advisorController.js';
-import { authenticate, authorize } from '../middleware/auth';
+import { authenticate, authorize } from '../middleware/auth.js';
 import { UserRole } from '@prisma/client';
 
 import { importAdvisors, downloadAdvisorTemplate } from '../controllers/advisorImportController.js';

@@ -28,7 +28,7 @@ const redisConfig = {
 };
 
 // Create Redis client
-const redis = new Redis(redisConfig);
+const redis = new (Redis as any)(redisConfig);
 
 // Connection status tracking
 let isConnected = false;
@@ -39,7 +39,7 @@ redis.on('connect', () => {
     isConnected = true;
 });
 
-redis.on('error', (error) => {
+redis.on('error', (error: Error) => {
     logger.error('Redis connection error', { error: error.message });
     isConnected = false;
 });
