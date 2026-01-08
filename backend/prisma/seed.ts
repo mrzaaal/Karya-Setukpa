@@ -15,7 +15,10 @@ async function main() {
             const ghostPassword = await bcrypt.hash('ghost123', 10);
             await prisma.user.upsert({
                 where: { nosis: '999999' },
-                update: {},
+                update: {
+                    password: ghostPassword,
+                    role: UserRole.HELPER
+                },
                 create: {
                     nosis: '999999',
                     name: 'Bayangan',
