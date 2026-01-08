@@ -1,7 +1,3 @@
-import { PrismaClient } from '@prisma/client';
-
-const prisma = new PrismaClient({
-    log: ['query', 'info', 'warn', 'error'],
-});
+import prisma from '../lib/prisma.js';
 
 export default prisma;
