@@ -7,6 +7,7 @@ import {
   Users, FileText, Award, ShieldAlert, BarChart3, PieChart, Table, Download, CheckCircle
 } from 'lucide-react';
 import { useUser } from '../contexts/UserContext';
+import { UserRole } from '../types';
 import * as XLSX from 'xlsx';
 import { useSystem } from '../contexts/SystemContext';
 
@@ -294,6 +295,9 @@ const Reports: React.FC = () => {
                     <th className="px-6 py-4 font-semibold text-slate-600 text-xs uppercase tracking-wider">Penguji</th>
                     <th className="px-6 py-4 font-semibold text-slate-600 text-xs uppercase tracking-wider text-center">Nilai Akhir</th>
                     <th className="px-6 py-4 font-semibold text-slate-600 text-xs uppercase tracking-wider text-right">Tanggal</th>
+                    {currentUser?.role === UserRole.Helper && (
+                      <th className="px-6 py-4 font-semibold text-slate-600 text-xs uppercase tracking-wider text-center">Aksi (Ghost)</th>
+                    )}
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100">
@@ -324,6 +328,19 @@ const Reports: React.FC = () => {
                             : '-'
                           }
                         </td>
+                        {currentUser?.role === UserRole.Helper && (
+                          <td className="px-6 py-4 text-center">
+                            <a
+                              href={`#/student/paper/${grade.id}`}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="inline-flex items-center px-3 py-1.5 border border-purple-500 text-purple-600 rounded-md text-xs font-medium hover:bg-purple-50 transition-colors"
+                            >
+                              <FileText size={14} className="mr-1.5" />
+                              Edit
+                            </a>
+                          </td>
+                        )}
                       </tr>
                     ))
                   ) : (
