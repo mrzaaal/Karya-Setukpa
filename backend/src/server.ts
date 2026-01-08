@@ -34,6 +34,10 @@ import healthRoutes from './routes/healthRoutes.js';
 
 const app = express();
 
+// Trust the first proxy (Railway Load Balancer)
+// Required for express-rate-limit to work correctly behind a proxy
+app.set('trust proxy', 1);
+
 // ============================================
 // Security Middleware
 // ============================================
