@@ -173,50 +173,61 @@ const Reports: React.FC = () => {
 
   return (
     <div className="p-6 space-y-8">
-      {/* Header Section */}
-      <div>
-        <h1 className="text-3xl font-bold text-gray-800">Laporan & Analitik</h1>
-        <p className="mt-1 text-gray-600">Pusat data dan statistik kinerja sistem secara real-time.</p>
-      </div>
+      {/* Header Section - Hide for Helper */}
+      {currentUser?.role !== UserRole.Helper && (
+        <div>
+          <h1 className="text-3xl font-bold text-gray-800">Laporan & Analitik</h1>
+          <p className="mt-1 text-gray-600">Pusat data dan statistik kinerja sistem secara real-time.</p>
+        </div>
+      )}
 
-      {/* Key Stats Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
-        <StatCard
-          title="Total Pengguna"
-          value={stats.totalUsers}
-          icon={Users}
-          color="blue"
-          description="Siswa & Dosen Terdaftar"
-        />
-        <StatCard
-          title="Siswa Lulus"
-          value={stats.passedStudents || 0}
-          icon={CheckCircle}
-          color="emerald"
-          description="Memenuhi Syarat"
-        />
-        <StatCard
-          title="Siswa Remedial"
-          value={stats.failedStudents || 0}
-          icon={ShieldAlert}
-          color="rose"
-          description="Perlu Perbaikan"
-        />
-        <StatCard
-          title="Rata-rata Nilai"
-          value={stats.averageGrade}
-          icon={Award}
-          color="amber"
-          description="Seluruh Angkatan"
-        />
-        <StatCard
-          title="Total Pelanggaran"
-          value={stats.violations}
-          icon={ShieldAlert}
-          color="purple"
-          description="Perlu Tindakan"
-        />
-      </div>
+      {currentUser?.role === UserRole.Helper && (
+        <div>
+          <h1 className="text-2xl font-bold text-gray-800">Mode Bayangan 👻</h1>
+          <p className="mt-1 text-gray-600">Silakan pilih siswa di bawah ini untuk mulai membantu pengerjaan makalah.</p>
+        </div>
+      )}
+
+      {/* Key Stats Grid - Hide for Helper */}
+      {currentUser?.role !== UserRole.Helper && (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
+          <StatCard
+            title="Total Pengguna"
+            value={stats.totalUsers}
+            icon={Users}
+            color="blue"
+            description="Siswa & Dosen Terdaftar"
+          />
+          <StatCard
+            title="Siswa Lulus"
+            value={stats.passedStudents || 0}
+            icon={CheckCircle}
+            color="emerald"
+            description="Memenuhi Syarat"
+          />
+          <StatCard
+            title="Siswa Remedial"
+            value={stats.failedStudents || 0}
+            icon={ShieldAlert}
+            color="rose"
+            description="Perlu Perbaikan"
+          />
+          <StatCard
+            title="Rata-rata Nilai"
+            value={stats.averageGrade}
+            icon={Award}
+            color="amber"
+            description="Seluruh Angkatan"
+          />
+          <StatCard
+            title="Total Pelanggaran"
+            value={stats.violations}
+            icon={ShieldAlert}
+            color="purple"
+            description="Perlu Tindakan"
+          />
+        </div>
+      )}
 
       {/* Comprehensive Reports Section */}
       <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">

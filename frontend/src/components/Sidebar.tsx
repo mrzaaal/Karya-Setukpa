@@ -72,6 +72,12 @@ const Sidebar: React.FC = () => {
                     </>
                 );
             case UserRole.Helper:
+                return (
+                    <>
+                        <SectionHeader label="Menu Bayangan" />
+                        <NavItem to="/" icon={ChartBarIcon} label="Daftar Siswa (Laporan)" />
+                    </>
+                );
             case UserRole.SuperAdmin:
                 return (
                     <>
