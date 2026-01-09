@@ -200,9 +200,12 @@ export const updateProfile = async (req: AuthRequest, res: Response): Promise<vo
         const { name, email, password } = req.body;
         const file = req.file;
 
+        console.log(`[PROFILE UPDATE] Request for UserID: ${userId}`);
+        console.log(`[PROFILE UPDATE] File Present: ${file ? 'YES' : 'NO'}`);
+
         const updateData: any = {};
-        if (name) updateData.name = name;
-        if (email) updateData.email = email;
+        if (name && name.trim() !== '') updateData.name = name;
+        if (email !== undefined) updateData.email = email || null; // Allow clearing email
         if (password && password.trim() !== '') {
             updateData.password = await hashPassword(password);
         }
@@ -210,39 +213,45 @@ export const updateProfile = async (req: AuthRequest, res: Response): Promise<vo
         if (file) {
             // Check if Supabase is configured
             if (!process.env.SUPABASE_URL || !process.env.SUPABASE_ANON_KEY) {
-                console.warn('Supabase not configured, skipping photo upload');
-                // Don't throw, just skip or return warning? 
-                // Better to return validation error if user INTENDED to upload
-                res.status(503).json({ error: 'Photo upload service unavailable (configuration missing)' });
-                return;
+                console.warn('[PROFILE UPDATE] Supabase not configured, skipping photo upload');
+                // Don't fail the written profile update just because photo service is down
+                // res.status(503).json({ error: 'Photo upload service unavailable' });
+            } else {
+                try {
+                    // Generate unique filename
+                    const fileExt = file.originalname.split('.').pop();
+                    const filename = `${userId}-${Date.now()}.${fileExt}`;
+
+                    // Upload to Supabase
+                    const { data, error } = await supabase.storage
+                        .from('profile-photos')
+                        .upload(filename, file.buffer, {
+                            contentType: file.mimetype,
+                            upsert: true
+                        });
+
+                    if (error) {
+                        console.error('[PROFILE UPDATE] Supabase upload error:', error);
+                        // throw new Error(`Upload failed: ${error.message}`);
+                        // Fail gracefully on photo
+                    } else {
+                        // Get Public URL
+                        const { data: { publicUrl } } = supabase.storage
+                            .from('profile-photos')
+                            .getPublicUrl(filename);
+
+                        updateData.photoUrl = publicUrl;
+                    }
+                } catch (photoError) {
+                    console.error('[PROFILE UPDATE] Critical Photo Error:', photoError);
+                }
             }
-
-            // Generate unique filename
-            const fileExt = file.originalname.split('.').pop();
-            const filename = `${userId}-${Date.now()}.${fileExt}`;
-
-            // Upload to Supabase
-            const { data, error } = await supabase.storage
-                .from('profile-photos')
-                .upload(filename, file.buffer, {
-                    contentType: file.mimetype,
-                    upsert: true
-                });
-
-            if (error) {
-                console.error('Supabase upload error:', error);
-                throw new Error(`Upload failed: ${error.message}`);
-            }
-
-            // Get Public URL
-            const { data: { publicUrl } } = supabase.storage
-                .from('profile-photos')
-                .getPublicUrl(filename);
-
-            updateData.photoUrl = publicUrl;
         }
 
-        console.log('Update profile request:', { userId, body: req.body, file: req.file ? 'YES' : 'NO' });
+        if (Object.keys(updateData).length === 0) {
+            res.status(400).json({ error: 'Tidak ada data yang diubah.' });
+            return;
+        }
 
         const user = await prisma.user.update({
             where: { id: userId },
@@ -274,20 +283,42 @@ export const updateProfile = async (req: AuthRequest, res: Response): Promise<vo
             }
         });
 
-        console.log('Profile updated successfully:', { userId, photoUrl: updatedUser?.photoUrl });
+        console.log('[PROFILE UPDATE] Success:', { userId });
 
         res.json({ user: updatedUser });
     } catch (error: any) {
-        console.error('Update profile error:', error);
+        console.error('[PROFILE UPDATE] CRITICAL ERROR:', error);
 
-        // Prisma unique constraint error
-        if (error.code === 'P2002') {
-            res.status(409).json({ error: 'Data already exists (e.g. Email or NOSIS already taken)' });
+        // Prisma record not found
+        if (error.code === 'P2025') {
+            res.status(404).json({ error: 'User tidak ditemukan.' });
             return;
         }
 
-        res.status(500).json({ error: error.message || 'Internal server error' });
+        // Prisma unique constraint error
+        if (error.code === 'P2002') {
+            res.status(409).json({ error: 'Data sudah ada (Email atau NOSIS sudah digunakan).' });
+            return;
+        }
+
+        res.status(500).json({ error: error.message || 'Terjadi kesalahan sistem.' });
     }
+};
+
+console.log('Profile updated successfully:', { userId, photoUrl: updatedUser?.photoUrl });
+
+res.json({ user: updatedUser });
+    } catch (error: any) {
+    console.error('Update profile error:', error);
+
+    // Prisma unique constraint error
+    if (error.code === 'P2002') {
+        res.status(409).json({ error: 'Data already exists (e.g. Email or NOSIS already taken)' });
+        return;
+    }
+
+    res.status(500).json({ error: error.message || 'Internal server error' });
+}
 };
 
 export const getProfile = async (req: AuthRequest, res: Response): Promise<void> => {
