@@ -1,8 +1,9 @@
 import React, { useState, useRef } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { XIcon, CameraIcon, SaveIcon } from './icons';
-import api, { API_URL } from '../services/api';
+import api from '../services/api';
 import toast from 'react-hot-toast';
+import { getInitials, getAvatarColor, getPhotoUrl } from '../utils/avatar';
 
 interface ProfileSettingsModalProps {
     onClose: () => void;
@@ -17,7 +18,7 @@ const ProfileSettingsModal: React.FC<ProfileSettingsModalProps> = ({ onClose }) 
     const [password, setPassword] = useState('');
     const [confirmPassword, setConfirmPassword] = useState('');
     const [photo, setPhoto] = useState<File | null>(null);
-    const [previewUrl, setPreviewUrl] = useState<string | null>(currentUser?.photoUrl ? `${API_URL.replace('/api', '')}${currentUser.photoUrl}` : null);
+    const [previewUrl, setPreviewUrl] = useState<string | null>(getPhotoUrl(currentUser?.photoUrl));
     const [loading, setLoading] = useState(false);
     const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -82,16 +83,24 @@ const ProfileSettingsModal: React.FC<ProfileSettingsModalProps> = ({ onClose }) 
                     {/* Photo Upload */}
                     <div className="flex flex-col items-center gap-4 mb-6">
                         <div className="relative group">
-                            <img
-                                src={previewUrl || `https://i.pravatar.cc/150?u=${currentUser?.id}`}
-                                alt="Profile"
-                                className="w-24 h-24 rounded-full object-cover border-4 border-gray-50"
-                                onError={(e) => {
-                                    const target = e.target as HTMLImageElement;
-                                    target.onerror = null;
-                                    target.src = `https://i.pravatar.cc/150?u=${currentUser?.id}`;
-                                }}
-                            />
+                            {previewUrl ? (
+                                <img
+                                    src={previewUrl}
+                                    alt="Profile"
+                                    className="w-24 h-24 rounded-full object-cover border-4 border-gray-50"
+                                    onError={(e) => {
+                                        const target = e.target as HTMLImageElement;
+                                        target.style.display = 'none';
+                                    }}
+                                />
+                            ) : (
+                                <div
+                                    className="w-24 h-24 rounded-full flex items-center justify-center text-white font-bold text-2xl border-4 border-gray-50"
+                                    style={{ backgroundColor: getAvatarColor(currentUser?.id || currentUser?.name) }}
+                                >
+                                    {getInitials(currentUser?.name)}
+                                </div>
+                            )}
                             <button
                                 type="button"
                                 onClick={() => fileInputRef.current?.click()}

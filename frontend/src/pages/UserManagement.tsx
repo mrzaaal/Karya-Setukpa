@@ -192,65 +192,79 @@ const UserManagement: React.FC = () => {
                             </tr>
                         </thead>
                         <tbody className="bg-white divide-y divide-gray-200">
-                            {filteredUsers.map((user) => (
-                                <tr key={user.id} className="hover:bg-gray-50 transition-colors">
-                                    <td className="px-6 py-4 whitespace-nowrap">
-                                        <div className="flex items-center">
-                                            <div className="flex-shrink-0 h-10 w-10">
-                                                <img className="h-10 w-10 rounded-full" src={`https://i.pravatar.cc/100?u=${user.id}`} alt={`${user.name}'s avatar`} />
+                            {filteredUsers.map((user) => {
+                                const initials = user.name ? user.name.split(' ').filter(Boolean).map((n, i, arr) => i === 0 || i === arr.length - 1 ? n.charAt(0) : '').join('').toUpperCase() : '?';
+                                let hash = 0;
+                                for (let i = 0; i < (user.id || user.name || '').length; i++) {
+                                    hash = (user.id || user.name || '').charCodeAt(i) + ((hash << 5) - hash);
+                                }
+                                const avatarColor = `hsl(${hash % 360}, 60%, 45%)`;
+
+                                return (
+                                    <tr key={user.id} className="hover:bg-gray-50 transition-colors">
+                                        <td className="px-6 py-4 whitespace-nowrap">
+                                            <div className="flex items-center">
+                                                <div className="flex-shrink-0 h-10 w-10">
+                                                    <div
+                                                        className="h-10 w-10 rounded-full flex items-center justify-center text-white font-bold text-sm"
+                                                        style={{ backgroundColor: avatarColor }}
+                                                    >
+                                                        {initials}
+                                                    </div>
+                                                </div>
+                                                <div className="ml-4">
+                                                    <div className="text-sm font-medium text-gray-900">{user.name}</div>
+                                                </div>
                                             </div>
-                                            <div className="ml-4">
-                                                <div className="text-sm font-medium text-gray-900">{user.name}</div>
-                                            </div>
-                                        </div>
-                                    </td>
-                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 font-mono">{user.id}</td>
-                                    <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                                        <div className="flex items-center justify-end gap-2">
-                                            {currentRole === UserRole.Siswa && (
-                                                <button
-                                                    onClick={async () => {
-                                                        if (window.confirm(`Reset pelanggaran untuk ${user.name}? Editor akan terbuka kembali.`)) {
-                                                            try {
-                                                                await api.delete(`/violations/reset/${user.id}`);
-                                                                alert("Pelanggaran berhasil direset!");
-                                                            } catch (e) {
-                                                                alert("Gagal mereset pelanggaran.");
-                                                                console.error(e);
+                                        </td>
+                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 font-mono">{user.id}</td>
+                                        <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                                            <div className="flex items-center justify-end gap-2">
+                                                {currentRole === UserRole.Siswa && (
+                                                    <button
+                                                        onClick={async () => {
+                                                            if (window.confirm(`Reset pelanggaran untuk ${user.name}? Editor akan terbuka kembali.`)) {
+                                                                try {
+                                                                    await api.delete(`/violations/reset/${user.id}`);
+                                                                    alert("Pelanggaran berhasil direset!");
+                                                                } catch (e) {
+                                                                    alert("Gagal mereset pelanggaran.");
+                                                                    console.error(e);
+                                                                }
                                                             }
-                                                        }
-                                                    }}
-                                                    className="p-2 text-green-600 hover:bg-green-50 rounded-lg transition-colors"
-                                                    title="Reset Pelanggaran / Buka Kunci Editor"
+                                                        }}
+                                                        className="p-2 text-green-600 hover:bg-green-50 rounded-lg transition-colors"
+                                                        title="Reset Pelanggaran / Buka Kunci Editor"
+                                                    >
+                                                        <Unlock size={18} />
+                                                    </button>
+                                                )}
+                                                <button
+                                                    onClick={() => handleResetPassword(user.name)}
+                                                    className="p-2 text-yellow-600 hover:bg-yellow-50 rounded-lg transition-colors"
+                                                    title="Reset Password"
                                                 >
-                                                    <Unlock size={18} />
+                                                    <Key size={18} />
                                                 </button>
-                                            )}
-                                            <button
-                                                onClick={() => handleResetPassword(user.name)}
-                                                className="p-2 text-yellow-600 hover:bg-yellow-50 rounded-lg transition-colors"
-                                                title="Reset Password"
-                                            >
-                                                <Key size={18} />
-                                            </button>
-                                            <button
-                                                onClick={() => handleEditUser(user)}
-                                                className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
-                                                title="Edit"
-                                            >
-                                                <Edit size={18} />
-                                            </button>
-                                            <button
-                                                onClick={() => handleDeleteUser(user.id)}
-                                                className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
-                                                title="Delete"
-                                            >
-                                                <Trash2 size={18} />
-                                            </button>
-                                        </div>
-                                    </td>
-                                </tr>
-                            ))}
+                                                <button
+                                                    onClick={() => handleEditUser(user)}
+                                                    className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                                                    title="Edit"
+                                                >
+                                                    <Edit size={18} />
+                                                </button>
+                                                <button
+                                                    onClick={() => handleDeleteUser(user.id)}
+                                                    className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                                                    title="Delete"
+                                                >
+                                                    <Trash2 size={18} />
+                                                </button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                )
+                            })}
                         </tbody>
                     </table>
                 </div>

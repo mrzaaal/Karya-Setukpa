@@ -1,6 +1,7 @@
 
 import React from 'react';
 import { Comment } from '../types';
+import { getInitials, getAvatarColor } from '../utils/avatar';
 
 interface CommentItemProps {
   comment: Comment;
@@ -14,7 +15,7 @@ const CommentItem: React.FC<CommentItemProps> = ({ comment, isCurrentUser }) => 
     const date = new Date(dateString);
     const now = new Date();
     const seconds = Math.floor((now.getTime() - date.getTime()) / 1000);
-    
+
     let interval = seconds / 31536000;
     if (interval > 1) return Math.floor(interval) + "y ago";
     interval = seconds / 2592000;
@@ -28,15 +29,21 @@ const CommentItem: React.FC<CommentItemProps> = ({ comment, isCurrentUser }) => 
     return "just now";
   };
 
+  const initials = getInitials(authorName);
+  const avatarColor = getAvatarColor(authorId || authorName);
+
+  const AvatarComponent = () => (
+    <div
+      className="h-8 w-8 rounded-full flex items-center justify-center text-white font-bold text-xs flex-shrink-0"
+      style={{ backgroundColor: avatarColor }}
+    >
+      {initials}
+    </div>
+  );
+
   return (
     <div className={`flex items-start gap-3 ${isCurrentUser ? 'justify-end' : ''}`}>
-      {!isCurrentUser && (
-        <img
-          className="h-8 w-8 rounded-full object-cover flex-shrink-0"
-          src={`https://i.pravatar.cc/50?u=${authorId}`}
-          alt={`${authorName}'s avatar`}
-        />
-      )}
+      {!isCurrentUser && <AvatarComponent />}
       <div className={`flex flex-col ${isCurrentUser ? 'items-end' : 'items-start'}`}>
         <div className={`
           p-3 rounded-lg max-w-xs
@@ -50,13 +57,7 @@ const CommentItem: React.FC<CommentItemProps> = ({ comment, isCurrentUser }) => 
         </div>
         <p className="text-xs text-gray-400 mt-1 px-1">{timeAgo(timestamp)}</p>
       </div>
-       {isCurrentUser && (
-        <img
-          className="h-8 w-8 rounded-full object-cover flex-shrink-0"
-          src={`https://i.pravatar.cc/50?u=${authorId}`}
-          alt={`${authorName}'s avatar`}
-        />
-      )}
+      {isCurrentUser && <AvatarComponent />}
     </div>
   );
 };

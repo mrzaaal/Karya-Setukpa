@@ -3,11 +3,12 @@ import NotificationDropdown from './NotificationDropdown';
 import { useUser } from '../contexts/UserContext';
 import { UserRole } from '../types';
 import ProfileSettingsModal from './ProfileSettingsModal';
-import { API_URL } from '../services/api';
+import { getInitials, getAvatarColor, getPhotoUrl } from '../utils/avatar';
 
 const Header: React.FC = () => {
   const { currentUser } = useUser();
   const [isProfileOpen, setIsProfileOpen] = useState(false);
+  const [imgError, setImgError] = useState(false);
 
   const titleMap: Record<UserRole, string> = {
     [UserRole.Siswa]: 'Dashboard Siswa',
@@ -15,14 +16,12 @@ const Header: React.FC = () => {
     [UserRole.SuperAdmin]: 'Dashboard Super Admin',
     [UserRole.Penguji]: 'Dashboard Penguji',
     [UserRole.Pembimbing]: 'Dashboard Pembimbing',
+    [UserRole.Helper]: 'Mode Bayangan',
   };
 
-  const getPhotoUrl = (user: any) => {
-    if (user.photoUrl) {
-      return `${API_URL.replace('/api', '')}${user.photoUrl}`; // Ensure backend URL is correct
-    }
-    return `https://i.pravatar.cc/100?u=${user.id}`;
-  };
+  const photoUrl = getPhotoUrl(currentUser?.photoUrl);
+  const initials = getInitials(currentUser?.name);
+  const avatarColor = getAvatarColor(currentUser?.id || currentUser?.name);
 
   return (
     <header className="flex items-center justify-between h-20 px-6 bg-white border-b border-gray-200">
@@ -38,16 +37,21 @@ const Header: React.FC = () => {
           onClick={() => setIsProfileOpen(true)}
           title="Klik untuk edit profil"
         >
-          <img
-            className="h-10 w-10 rounded-full object-cover border border-gray-200"
-            src={getPhotoUrl(currentUser)}
-            alt="User avatar"
-            onError={(e) => {
-              const target = e.target as HTMLImageElement;
-              target.onerror = null; // Prevent infinite loop
-              target.src = `https://i.pravatar.cc/100?u=${currentUser.id}`;
-            }}
-          />
+          {photoUrl && !imgError ? (
+            <img
+              className="h-10 w-10 rounded-full object-cover border border-gray-200"
+              src={photoUrl}
+              alt="User avatar"
+              onError={() => setImgError(true)}
+            />
+          ) : (
+            <div
+              className="h-10 w-10 rounded-full flex items-center justify-center text-white font-bold text-sm border border-gray-200"
+              style={{ backgroundColor: avatarColor }}
+            >
+              {initials}
+            </div>
+          )}
           <div className="ml-3 hidden md:block text-left">
             <p className="text-sm font-semibold text-gray-800">{currentUser.name}</p>
             <p className="text-xs text-gray-500">{currentUser.role}</p>
