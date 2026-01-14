@@ -5,14 +5,18 @@ import crypto from 'crypto';
 
 export const getAllTemplates = async (req: AuthRequest, res: Response): Promise<void> => {
     try {
+        console.log('[Templates] Fetching all templates...');
         const templates = await prisma.paperTemplate.findMany({
             orderBy: { createdAt: 'desc' },
         });
 
+        console.log(`[Templates] Found ${templates.length} templates`);
         res.json({ templates });
-    } catch (error) {
-        console.error('Get all templates error:', error);
-        res.status(500).json({ error: 'Internal server error' });
+    } catch (error: any) {
+        console.error('[Templates] Error fetching templates:', error?.message || error);
+        console.error('[Templates] Full error:', JSON.stringify(error, null, 2));
+        // Return empty array instead of crashing to keep UI working
+        res.json({ templates: [] });
     }
 };
 
