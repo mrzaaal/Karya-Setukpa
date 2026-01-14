@@ -1,7 +1,7 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import api from '../services/api';
 import { SearchIcon } from '../components/icons';
-import { Users, UserCheck, UserX, AlertCircle, CheckCircle2, Trash2, ChevronDown, Loader2, X, Plus, Zap, Settings, RotateCcw, Undo2 } from 'lucide-react';
+import { Users, UserCheck, UserX, AlertCircle, CheckCircle2, Trash2, ChevronDown, Loader2, X, Plus, Zap, Settings, RotateCcw, Undo2, ChevronLeft, ChevronRight } from 'lucide-react';
 
 interface Student {
     id: string;
@@ -60,6 +60,10 @@ const AdvisorAssignment: React.FC = () => {
     const [newCapacity, setNewCapacity] = useState(25);
     const [updatingCapacity, setUpdatingCapacity] = useState(false);
 
+    // Pagination State
+    const [currentPage, setCurrentPage] = useState(1);
+    const [itemsPerPage] = useState(10);
+
     useEffect(() => {
         fetchData();
     }, []);
@@ -111,7 +115,20 @@ const AdvisorAssignment: React.FC = () => {
         }
 
         return filtered;
+        return filtered;
     }, [students, searchTerm, selectedAdvisorFilter]);
+
+    // Pagination Logic
+    const totalPages = Math.ceil(filteredStudents.length / itemsPerPage);
+    const paginatedStudents = useMemo(() => {
+        const startIndex = (currentPage - 1) * itemsPerPage;
+        return filteredStudents.slice(startIndex, startIndex + itemsPerPage);
+    }, [filteredStudents, currentPage, itemsPerPage]);
+
+    // Reset page when filter changes
+    useEffect(() => {
+        setCurrentPage(1);
+    }, [searchTerm, selectedAdvisorFilter]);
 
     const handleAutoAssign = async () => {
         if (!confirm('Mulai auto-assignment untuk siswa yang belum punya pembimbing?')) return;
@@ -492,8 +509,8 @@ const AdvisorAssignment: React.FC = () => {
                                     </tr>
                                 </thead>
                                 <tbody className="divide-y divide-gray-100">
-                                    {filteredStudents.length > 0 ? (
-                                        filteredStudents.map((student) => (
+                                    {paginatedStudents.length > 0 ? (
+                                        paginatedStudents.map((student) => (
                                             <tr key={student.id} className="hover:bg-gray-50/50 transition-colors group">
                                                 <td className="px-6 py-4">
                                                     <div className="flex items-center gap-3">
@@ -560,6 +577,58 @@ const AdvisorAssignment: React.FC = () => {
                                 </tbody>
                             </table>
                         </div>
+
+                        {/* Pagination Footer */}
+                        {filteredStudents.length > 0 && (
+                            <div className="px-6 py-4 flex items-center justify-between border-t border-gray-100 bg-gray-50/50">
+                                <div className="text-sm text-gray-500">
+                                    Menampilkan <span className="font-medium">{(currentPage - 1) * itemsPerPage + 1}</span> - <span className="font-medium">{Math.min(currentPage * itemsPerPage, filteredStudents.length)}</span> dari <span className="font-medium">{filteredStudents.length}</span> siswa
+                                </div>
+                                <div className="flex items-center gap-2">
+                                    <button
+                                        onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                                        disabled={currentPage === 1}
+                                        className="p-2 rounded-lg border border-gray-200 hover:bg-white hover:shadow-sm disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+                                    >
+                                        <ChevronLeft className="w-4 h-4 text-gray-600" />
+                                    </button>
+                                    <div className="flex items-center gap-1">
+                                        {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+                                            // Logic to show pages around current page if many pages
+                                            let pageNum = i + 1;
+                                            if (totalPages > 5) {
+                                                if (currentPage > 3) pageNum = currentPage - 2 + i;
+                                                if (pageNum > totalPages) pageNum = totalPages - (4 - i);
+                                            }
+
+                                            // Ensure valid page numbers
+                                            if (pageNum < 1) return null;
+                                            if (pageNum > totalPages) return null;
+
+                                            return (
+                                                <button
+                                                    key={pageNum}
+                                                    onClick={() => setCurrentPage(pageNum)}
+                                                    className={`w-8 h-8 rounded-lg text-sm font-medium transition-colors ${currentPage === pageNum
+                                                            ? 'bg-indigo-600 text-white'
+                                                            : 'text-gray-600 hover:bg-gray-100'
+                                                        }`}
+                                                >
+                                                    {pageNum}
+                                                </button>
+                                            );
+                                        })}
+                                    </div>
+                                    <button
+                                        onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+                                        disabled={currentPage === totalPages}
+                                        className="p-2 rounded-lg border border-gray-200 hover:bg-white hover:shadow-sm disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+                                    >
+                                        <ChevronRight className="w-4 h-4 text-gray-600" />
+                                    </button>
+                                </div>
+                            </div>
+                        )}
                     </div>
                 </div>
             </div>
