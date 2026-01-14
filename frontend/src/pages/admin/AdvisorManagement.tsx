@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import api from '../../services/api';
-import { PlusCircle, Edit, Trash2, X, Save, Upload, Download, Key } from 'lucide-react';
+import { PlusCircle, Edit, Trash2, X, Save, Upload, Download, Key, ChevronLeft, ChevronRight } from 'lucide-react';
 
 interface Advisor {
     id: string;
@@ -27,6 +27,17 @@ const AdvisorManagement: React.FC = () => {
     const [importFile, setImportFile] = useState<File | null>(null);
     const [error, setError] = useState<string | null>(null);
     const [importResult, setImportResult] = useState<any | null>(null);
+
+    // Pagination State
+    const [currentPage, setCurrentPage] = useState(1);
+    const [itemsPerPage] = useState(10);
+
+    // Pagination Logic
+    const totalPages = Math.ceil(advisors.length / itemsPerPage);
+    const paginatedAdvisors = advisors.slice(
+        (currentPage - 1) * itemsPerPage,
+        currentPage * itemsPerPage
+    );
 
     useEffect(() => {
         fetchAdvisors();
@@ -201,7 +212,7 @@ const AdvisorManagement: React.FC = () => {
                         </tr>
                     </thead>
                     <tbody className="divide-y divide-gray-100">
-                        {advisors.map((advisor) => (
+                        {paginatedAdvisors.map((advisor) => (
                             <tr key={advisor.id} className="hover:bg-gray-50 transition-colors">
                                 <td className="px-6 py-4 text-gray-800">{advisor.name}</td>
                                 <td className="px-6 py-4 text-gray-600">{advisor.rank}</td>
@@ -244,6 +255,50 @@ const AdvisorManagement: React.FC = () => {
                         )}
                     </tbody>
                 </table>
+                <div className="bg-gray-50 px-6 py-3 border-t border-gray-200 flex items-center justify-between">
+                    <span className="text-sm text-gray-500">
+                        Menampilkan <span className="font-medium">{(currentPage - 1) * itemsPerPage + 1}</span> - <span className="font-medium">{Math.min(currentPage * itemsPerPage, advisors.length)}</span> dari <span className="font-medium">{advisors.length}</span> pembimbing
+                    </span>
+                    <div className="flex items-center gap-2">
+                        <button
+                            onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                            disabled={currentPage === 1}
+                            className="p-1.5 rounded-lg border border-gray-200 hover:bg-white hover:shadow-sm disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+                        >
+                            <ChevronLeft className="w-4 h-4 text-gray-600" />
+                        </button>
+                        <div className="flex items-center gap-1">
+                            {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+                                let pageNum = i + 1;
+                                if (totalPages > 5) {
+                                    if (currentPage > 3) pageNum = currentPage - 2 + i;
+                                    if (pageNum > totalPages) pageNum = totalPages - (4 - i);
+                                }
+                                if (pageNum < 1 || pageNum > totalPages) return null;
+
+                                return (
+                                    <button
+                                        key={pageNum}
+                                        onClick={() => setCurrentPage(pageNum)}
+                                        className={`w-7 h-7 rounded-md text-xs font-medium transition-colors ${currentPage === pageNum
+                                                ? 'bg-blue-600 text-white'
+                                                : 'text-gray-600 hover:bg-gray-100'
+                                            }`}
+                                    >
+                                        {pageNum}
+                                    </button>
+                                );
+                            })}
+                        </div>
+                        <button
+                            onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+                            disabled={currentPage === totalPages}
+                            className="p-1.5 rounded-lg border border-gray-200 hover:bg-white hover:shadow-sm disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+                        >
+                            <ChevronRight className="w-4 h-4 text-gray-600" />
+                        </button>
+                    </div>
+                </div>
             </div>
 
             {/* Create/Edit Modal */}

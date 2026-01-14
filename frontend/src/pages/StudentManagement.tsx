@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import api from '../services/api';
 import { UserRole } from '../types';
 import { SearchIcon, UserGroupIcon } from '../components/icons';
-import { PlusCircle, Edit, Trash2, Upload, Download, RefreshCw, Key, XCircle, CheckCircle } from 'lucide-react';
+import { PlusCircle, Edit, Trash2, Upload, Download, RefreshCw, Key, XCircle, CheckCircle, ChevronLeft, ChevronRight } from 'lucide-react';
 
 interface Batch {
     id: string;
@@ -35,6 +35,10 @@ const StudentManagement: React.FC = () => {
     const [newStudent, setNewStudent] = useState({ nosis: '', name: '', email: '', password: 'password123' });
     const [editingStudent, setEditingStudent] = useState<User | null>(null);
     const [editForm, setEditForm] = useState({ nosis: '', name: '', email: '' });
+
+    // Pagination State
+    const [currentPage, setCurrentPage] = useState(1);
+    const [itemsPerPage] = useState(10);
 
     useEffect(() => {
         fetchBatches();
@@ -81,6 +85,18 @@ const StudentManagement: React.FC = () => {
         student.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
         student.nosis.includes(searchTerm)
     );
+
+    // Pagination Logic
+    const totalPages = Math.ceil(filteredStudents.length / itemsPerPage);
+    const paginatedStudents = filteredStudents.slice(
+        (currentPage - 1) * itemsPerPage,
+        currentPage * itemsPerPage
+    );
+
+    // Reset page on search or batch change
+    useEffect(() => {
+        setCurrentPage(1);
+    }, [searchTerm, selectedBatch]);
 
     const handleImport = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -341,7 +357,7 @@ const StudentManagement: React.FC = () => {
                                     </td>
                                 </tr>
                             ) : (
-                                filteredStudents.map((student) => (
+                                paginatedStudents.map((student) => (
                                     <tr key={student.id} className="hover:bg-gray-50 transition-colors duration-150">
                                         <td className="px-6 py-4 whitespace-nowrap">
                                             <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
@@ -387,8 +403,47 @@ const StudentManagement: React.FC = () => {
                 </div>
                 <div className="bg-gray-50 px-6 py-3 border-t border-gray-200 flex items-center justify-between">
                     <span className="text-sm text-gray-500">
-                        Menampilkan {filteredStudents.length} dari {students.length} siswa
+                        Menampilkan <span className="font-medium">{(currentPage - 1) * itemsPerPage + 1}</span> - <span className="font-medium">{Math.min(currentPage * itemsPerPage, filteredStudents.length)}</span> dari <span className="font-medium">{filteredStudents.length}</span> siswa
                     </span>
+                    <div className="flex items-center gap-2">
+                        <button
+                            onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                            disabled={currentPage === 1}
+                            className="p-1.5 rounded-lg border border-gray-200 hover:bg-white hover:shadow-sm disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+                        >
+                            <ChevronLeft className="w-4 h-4 text-gray-600" />
+                        </button>
+                        <div className="flex items-center gap-1">
+                            {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+                                let pageNum = i + 1;
+                                if (totalPages > 5) {
+                                    if (currentPage > 3) pageNum = currentPage - 2 + i;
+                                    if (pageNum > totalPages) pageNum = totalPages - (4 - i);
+                                }
+                                if (pageNum < 1 || pageNum > totalPages) return null;
+
+                                return (
+                                    <button
+                                        key={pageNum}
+                                        onClick={() => setCurrentPage(pageNum)}
+                                        className={`w-7 h-7 rounded-md text-xs font-medium transition-colors ${currentPage === pageNum
+                                            ? 'bg-blue-600 text-white'
+                                            : 'text-gray-600 hover:bg-gray-100'
+                                            }`}
+                                    >
+                                        {pageNum}
+                                    </button>
+                                );
+                            })}
+                        </div>
+                        <button
+                            onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+                            disabled={currentPage === totalPages}
+                            className="p-1.5 rounded-lg border border-gray-200 hover:bg-white hover:shadow-sm disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+                        >
+                            <ChevronRight className="w-4 h-4 text-gray-600" />
+                        </button>
+                    </div>
                 </div>
             </div>
 
