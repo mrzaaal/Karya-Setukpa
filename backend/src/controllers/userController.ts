@@ -210,11 +210,20 @@ export const updateProfile = async (req: AuthRequest, res: Response): Promise<vo
         }
 
         if (file) {
+            console.log('[PROFILE UPDATE] File details:', {
+                originalname: file.originalname,
+                mimetype: file.mimetype,
+                size: file.buffer?.length || 0
+            });
+
             // Check if Supabase is configured
-            if (!process.env.SUPABASE_URL || !process.env.SUPABASE_ANON_KEY) {
+            const supabaseConfigured = Boolean(process.env.SUPABASE_URL && process.env.SUPABASE_ANON_KEY);
+            console.log('[PROFILE UPDATE] Supabase configured:', supabaseConfigured);
+            console.log('[PROFILE UPDATE] SUPABASE_URL exists:', Boolean(process.env.SUPABASE_URL));
+
+            if (!supabaseConfigured) {
                 console.warn('[PROFILE UPDATE] Supabase not configured, skipping photo upload');
-                // Don't fail the written profile update just because photo service is down
-                // res.status(503).json({ error: 'Photo upload service unavailable' });
+                // Don't fail the profile update just because photo service is down
             } else {
                 try {
                     // Generate unique filename
