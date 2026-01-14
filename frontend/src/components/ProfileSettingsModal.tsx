@@ -54,6 +54,10 @@ const ProfileSettingsModal: React.FC<ProfileSettingsModalProps> = ({ onClose }) 
 
             const updatedUser = response.data.user;
 
+            // Debug: Log the received user data to check if photoUrl is present
+            console.log('[ProfileSettingsModal] Updated user from server:', updatedUser);
+            console.log('[ProfileSettingsModal] PhotoUrl:', updatedUser?.photoUrl);
+
             // Update local storage and reload to refresh context (a bit hacky but works for now)
             // Ideally AuthContext should expose an 'updateUser' method
             localStorage.setItem('user', JSON.stringify(updatedUser));
