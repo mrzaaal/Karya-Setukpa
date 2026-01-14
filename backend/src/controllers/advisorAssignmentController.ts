@@ -323,3 +323,155 @@ export const updateAdvisorCapacity = async (req: Request, res: Response): Promis
         res.status(500).json({ error: 'Failed to update advisor capacity' });
     }
 };
+
+// Store last auto-assign snapshot for undo functionality
+let lastAutoAssignSnapshot: Array<{ studentId: string; previousAdvisorId: string | null }> = [];
+
+// Reset all advisor assignments (remove all students from all advisors)
+export const resetAllAssignments = async (req: Request, res: Response): Promise<void> => {
+    try {
+        // Get all students with advisors assigned
+        const studentsWithAdvisors = await prisma.user.findMany({
+            where: {
+                role: UserRole.SISWA,
+                pembimbingId: { not: null }
+            },
+            select: { id: true, name: true, pembimbingId: true }
+        });
+
+        if (studentsWithAdvisors.length === 0) {
+            res.json({
+                success: true,
+                message: 'No assignments to reset',
+                resetCount: 0
+            });
+            return;
+        }
+
+        // Save snapshot for undo
+        lastAutoAssignSnapshot = studentsWithAdvisors.map(s => ({
+            studentId: s.id,
+            previousAdvisorId: s.pembimbingId
+        }));
+
+        // Reset all assignments
+        const result = await prisma.user.updateMany({
+            where: {
+                role: UserRole.SISWA,
+                pembimbingId: { not: null }
+            },
+            data: { pembimbingId: null }
+        });
+
+        res.json({
+            success: true,
+            message: `Successfully reset ${result.count} student assignments`,
+            resetCount: result.count,
+            canUndo: true
+        });
+    } catch (error) {
+        console.error('Reset all assignments error:', error);
+        res.status(500).json({ error: 'Failed to reset assignments' });
+    }
+};
+
+// Reset assignments for a specific advisor
+export const resetAdvisorAssignments = async (req: Request, res: Response): Promise<void> => {
+    try {
+        const { advisorId } = req.params;
+
+        if (!advisorId) {
+            res.status(400).json({ error: 'advisorId is required' });
+            return;
+        }
+
+        // Check if advisor exists
+        const advisor = await prisma.user.findUnique({
+            where: { id: advisorId },
+            select: { id: true, name: true, role: true }
+        });
+
+        if (!advisor) {
+            res.status(404).json({ error: 'Advisor not found' });
+            return;
+        }
+
+        if (advisor.role !== UserRole.PEMBIMBING) {
+            res.status(400).json({ error: 'User is not an advisor' });
+            return;
+        }
+
+        // Get students assigned to this advisor (for snapshot)
+        const assignedStudents = await prisma.user.findMany({
+            where: {
+                role: UserRole.SISWA,
+                pembimbingId: advisorId
+            },
+            select: { id: true, pembimbingId: true }
+        });
+
+        // Save snapshot for undo
+        lastAutoAssignSnapshot = assignedStudents.map(s => ({
+            studentId: s.id,
+            previousAdvisorId: s.pembimbingId
+        }));
+
+        // Reset assignments for this advisor
+        const result = await prisma.user.updateMany({
+            where: {
+                role: UserRole.SISWA,
+                pembimbingId: advisorId
+            },
+            data: { pembimbingId: null }
+        });
+
+        res.json({
+            success: true,
+            message: `Successfully reset ${result.count} students from ${advisor.name}`,
+            advisorName: advisor.name,
+            resetCount: result.count,
+            canUndo: true
+        });
+    } catch (error) {
+        console.error('Reset advisor assignments error:', error);
+        res.status(500).json({ error: 'Failed to reset advisor assignments' });
+    }
+};
+
+// Undo last reset or auto-assign operation
+export const undoLastOperation = async (req: Request, res: Response): Promise<void> => {
+    try {
+        if (lastAutoAssignSnapshot.length === 0) {
+            res.status(400).json({
+                success: false,
+                error: 'No operation to undo',
+                message: 'There is no previous assignment operation to restore'
+            });
+            return;
+        }
+
+        // Restore previous assignments
+        let restoredCount = 0;
+        for (const snapshot of lastAutoAssignSnapshot) {
+            await prisma.user.update({
+                where: { id: snapshot.studentId },
+                data: { pembimbingId: snapshot.previousAdvisorId }
+            });
+            restoredCount++;
+        }
+
+        // Clear snapshot after undo
+        const restoredFromSnapshot = lastAutoAssignSnapshot.length;
+        lastAutoAssignSnapshot = [];
+
+        res.json({
+            success: true,
+            message: `Successfully restored ${restoredCount} student assignments`,
+            restoredCount,
+            canUndo: false
+        });
+    } catch (error) {
+        console.error('Undo operation error:', error);
+        res.status(500).json({ error: 'Failed to undo operation' });
+    }
+};

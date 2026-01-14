@@ -1,5 +1,14 @@
 import { Router } from 'express';
-import { getAdvisorCapacity, autoAssignAdvisors, validateAssignment, getStudentsWithAdvisors, updateAdvisorCapacity } from '../controllers/advisorAssignmentController.js';
+import {
+    getAdvisorCapacity,
+    autoAssignAdvisors,
+    validateAssignment,
+    getStudentsWithAdvisors,
+    updateAdvisorCapacity,
+    resetAllAssignments,
+    resetAdvisorAssignments,
+    undoLastOperation
+} from '../controllers/advisorAssignmentController.js';
 import { authenticate, authorize } from '../middleware/auth.js';
 
 const router = Router();
@@ -23,5 +32,11 @@ router.post('/validate', validateAssignment);
 // Update advisor max students capacity (Super Admin only)
 router.patch('/capacity/:advisorId', updateAdvisorCapacity);
 
+// Reset operations (Super Admin only)
+router.post('/reset-all', resetAllAssignments);
+router.post('/reset-advisor/:advisorId', resetAdvisorAssignments);
+router.post('/undo', undoLastOperation);
+
 export default router;
+
 
