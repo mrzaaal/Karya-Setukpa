@@ -30,11 +30,9 @@ api.interceptors.response.use(
     (error) => {
         if (error.response?.status === 401) {
             // Token expired or invalid
-            // Modified: Do NOT auto-logout. Allow user to refresh.
-            // localStorage.removeItem('token');
-            // localStorage.removeItem('user');
-            // window.location.href = '/#/login';
-            console.warn('API returned 401. Session might be invalid, or server restarting.');
+            localStorage.removeItem('token');
+            localStorage.removeItem('user');
+            window.location.href = '/#/login';
         }
         return Promise.reject(error);
     }
