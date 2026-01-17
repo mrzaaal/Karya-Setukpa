@@ -7,8 +7,8 @@ const isDev = process.env.NODE_ENV === 'development';
  * Allows 100 requests per 15 minutes per IP (1000 in dev)
  */
 export const apiLimiter = rateLimit({
-    windowMs: 5 * 60 * 1000, // Reduced to 5 minutes to clear faster
-    max: isDev ? 2000 : 500, // Increased prod limit to 500 to handle dashboard polling
+    windowMs: 15 * 60 * 1000, // 15 minutes window
+    max: isDev ? 5000 : 3000, // Increased to 3000 per 15 min for production (approx 3 req/sec burst allowance)
     message: { error: 'Terlalu banyak request, coba lagi dalam beberapa menit' },
     standardHeaders: true,
     legacyHeaders: false,

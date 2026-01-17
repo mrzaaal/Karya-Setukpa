@@ -91,7 +91,7 @@ export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({ 
     // Fetch notifications on mount and every 30 seconds
     useEffect(() => {
         fetchNotifications();
-        const interval = setInterval(fetchNotifications, 30000);
+        const interval = setInterval(fetchNotifications, 60000); // Poll every 60 seconds
         return () => clearInterval(interval);
     }, [fetchNotifications]);
 
