@@ -258,16 +258,11 @@ export const updateGrade = async (req: AuthRequest, res: Response): Promise<void
 
 export const getAllGrades = async (req: AuthRequest, res: Response): Promise<void> => {
     try {
-        // Safe fetch with minimized complexity
+        // Simplified query for debugging
         const papers = await prisma.paper.findMany({
             where: req.user?.role === 'HELPER' ? {} : {
-                // Return all papers that have SOME activity to avoid return 2000 empty rows
-                OR: [
-                    { grade: { not: null } },
-                    { Grade: { isNot: null } },
-                    { contentApprovalStatus: 'APPROVED' }, // Also include approved papers
-                    { finalApprovalStatus: 'APPROVED' }
-                ]
+                // Temporarily removed complex OR to debug 500 error
+                grade: { not: null }
             },
             include: {
                 User: {
@@ -275,21 +270,13 @@ export const getAllGrades = async (req: AuthRequest, res: Response): Promise<voi
                         id: true,
                         name: true,
                         nosis: true,
-                        batchId: true,
-                        User: { select: { name: true } } // Advisor info
+                        // Removed nested User select temporarily
                     }
                 },
-                Grade: {
-                    select: { finalScore: true, updatedAt: true }
-                },
-                Comment: {
-                    where: { text: { contains: '[NILAI:' } },
-                    orderBy: { createdAt: 'desc' },
-                    take: 1
-                }
+                // Removed Grade and Comment includes temporarily
             },
             orderBy: { updatedAt: 'desc' },
-            take: 200 // Limit for safety
+            take: 50 // Reduced limit
         });
 
         // Loop to fetch examiners in parallel (avoiding complex single query that might crash)
@@ -344,9 +331,9 @@ export const getAllGrades = async (req: AuthRequest, res: Response): Promise<voi
         }));
 
         res.json(formattedGrades);
-    } catch (error) {
+    } catch (error: any) {
         console.error('Get all grades error:', error);
-        res.status(500).json({ error: 'Internal server error' });
+        res.status(500).json({ error: `Internal server error: ${error.message}` });
     }
 };
 
