@@ -194,7 +194,7 @@ model Paper {
   @@index([userId])
   @@index([contentApprovalStatus])
   @@index([finalApprovalStatus])
-  @@index([consistencyStatus])
+  // @@index([consistencyStatus])
 }
 
 model PaperTemplate {
