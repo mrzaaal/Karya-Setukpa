@@ -7,7 +7,7 @@
     "scripts": {
         "dev": "tsx watch src/server.ts",
         "build": "npx prisma generate && tsc",
-        "start": "npx prisma db push --accept-data-loss && node dist/server.js",
+        "start": "node dist/server.js",
         "start:prod": "pm2 start ecosystem.config.cjs --env production",
         "stop:prod": "pm2 stop setukpa-api",
         "restart:prod": "pm2 reload ecosystem.config.cjs --env production",

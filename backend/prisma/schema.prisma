@@ -177,9 +177,10 @@ model Paper {
   finalApprovedBy     String?
 
   // Integrity / Consistency Check
-  consistencyScore    Float?    // 0.0 - 100.0
-  consistencyStatus   String?   @default("UNCHECKED") // UNCHECKED, PENDING_VERIFICATION, VERIFIED, REJECTED
-  consistencyLog      Json?     // Stores diff details or debug info
+  // Integrity / Consistency Check (Temporarily disabled due to migration issues)
+  // consistencyScore    Float?    // 0.0 - 100.0
+  // consistencyStatus   String?   @default("UNCHECKED") // UNCHECKED, PENDING_VERIFICATION, VERIFIED, REJECTED
+  // consistencyLog      Json?     // Stores diff details or debug info
 
   Assignment      Assignment @relation(fields: [assignmentId], references: [id], onDelete: Cascade)
   User            User       @relation(fields: [userId], references: [id], onDelete: Cascade)
