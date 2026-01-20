@@ -258,11 +258,16 @@ export const updateGrade = async (req: AuthRequest, res: Response): Promise<void
 
 export const getAllGrades = async (req: AuthRequest, res: Response): Promise<void> => {
     try {
-        // Simplified query for debugging
+        // Safe fetch with minimized complexity
         const papers = await prisma.paper.findMany({
             where: req.user?.role === 'HELPER' ? {} : {
-                // Temporarily removed complex OR to debug 500 error
-                grade: { not: null }
+                // Return all papers that have SOME activity
+                OR: [
+                    { grade: { not: null } },
+                    { Grade: { isNot: null } },
+                    { contentApprovalStatus: 'APPROVED' },
+                    { finalApprovalStatus: 'APPROVED' }
+                ]
             },
             include: {
                 User: {
@@ -270,13 +275,21 @@ export const getAllGrades = async (req: AuthRequest, res: Response): Promise<voi
                         id: true,
                         name: true,
                         nosis: true,
-                        // Removed nested User select temporarily
+                        batchId: true,
+                        User: { select: { name: true } } // Advisor info
                     }
                 },
-                // Removed Grade and Comment includes temporarily
+                Grade: {
+                    select: { finalScore: true, updatedAt: true }
+                },
+                Comment: {
+                    where: { text: { contains: '[NILAI:' } },
+                    orderBy: { createdAt: 'desc' },
+                    take: 1
+                }
             },
             orderBy: { updatedAt: 'desc' },
-            take: 50 // Reduced limit
+            take: 200 // Limit for safety
         });
 
         // Loop to fetch examiners in parallel (avoiding complex single query that might crash)
