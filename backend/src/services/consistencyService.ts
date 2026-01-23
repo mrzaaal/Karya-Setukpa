@@ -64,9 +64,46 @@ export class ConsistencyService {
         }
 
         // Use Dice coefficient from string-similarity library
-        const similarity = stringSimilarity.compareTwoStrings(normalized1, normalized2);
-        // Convert to percentage with 2 decimal places
-        return parseFloat((similarity * 100).toFixed(2));
+        const diceScore = parseFloat((stringSimilarity.compareTwoStrings(normalized1, normalized2) * 100).toFixed(2));
+
+        // Calculate Containment Score (How much of Text1 is inside Text2)
+        // This handles cases where Text2 (PDF) has extra content like Cover/Appendix
+        const containmentScore = this.calculateContainmentScore(normalized1, normalized2);
+
+        // Return the higher of the two scores
+        return Math.max(diceScore, containmentScore);
+    }
+
+    /**
+     * Calculates what percentage of text1 is contained within text2.
+     * Splits text1 into chunks and checks if they exist in text2.
+     */
+    calculateContainmentScore(source: string, target: string): number {
+        if (!source || !target) return 0;
+
+        // Split source by sentences or chunks ~50 chars
+        // Using period as simple sentence delimiter, then filter empty
+        const chunks = source.split('.')
+            .map(s => s.trim())
+            .filter(s => s.length > 20); // Ignore very short fragments
+
+        if (chunks.length === 0) return 0;
+
+        let matchedChunks = 0;
+        for (const chunk of chunks) {
+            if (target.includes(chunk)) {
+                matchedChunks++;
+            } else {
+                // Try fuzzy match for the chunk (tolerant to spacing issues)
+                // If chunk is found with >80% similarity anywhere in target? 
+                // That's expensive. Let's stick to simple inclusion first, 
+                // but maybe strip spaces for check?
+                // normalized text is already space-normalized.
+            }
+        }
+
+        const score = (matchedChunks / chunks.length) * 100;
+        return parseFloat(score.toFixed(2));
     }
 
     /**
