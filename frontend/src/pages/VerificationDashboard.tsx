@@ -13,6 +13,12 @@ interface PendingPaper {
     consistencyStatus: string;
     updatedAt: string;
     finalFileUrl: string | null;
+    consistencyLog?: {
+        editorLength: number;
+        fileLength: number;
+        score: number;
+        debug?: string[];
+    };
     User: {
         id: string;
         name: string;

@@ -156,15 +156,28 @@ export class ConsistencyService {
 
             return updatedPaper;
 
-        } catch (error) {
+        } catch (error: any) {
             console.error('Error in performConsistencyCheck:', error);
-            // Fallback: If check fails, don't block upload, just mark as UNCHECKED or Error
-            // But rethrow so controller knows? Or silent fail? 
-            // Let's create a fail state in DB if possible, or just rethrow.
-            // await prisma.paper.update({
-            //     where: { id: paperId },
-            //     data: { consistencyStatus: 'ERROR_CHECKING' }
-            // });
+
+            // Log error to DB so we can debug in frontend
+            try {
+                await prisma.paper.update({
+                    where: { id: paperId },
+                    data: {
+                        consistencyStatus: 'CHECK_ERROR',
+                        consistencyLog: {
+                            checkedAt: new Date().toISOString(),
+                            editorLength: 0,
+                            fileLength: 0,
+                            score: 0,
+                            debug: [`SYSTEM ERROR: ${error.message || error}`]
+                        }
+                    }
+                });
+            } catch (dbError) {
+                console.error('Failed to log error to DB:', dbError);
+            }
+
             throw error;
         }
     }
