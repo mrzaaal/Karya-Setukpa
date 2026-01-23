@@ -1,7 +1,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import api from '../services/api';
+import api, { API_URL } from '../services/api';
 import { useUser } from '../contexts/UserContext';
 import { Upload, FileText, CheckCircle, AlertCircle, Clock, ChevronLeft, Trash2, ListChecks, ShieldAlert, BadgeCheck, FileCheck } from 'lucide-react';
 import { toast } from 'react-hot-toast';
@@ -241,7 +241,18 @@ const FinalSubmission: React.FC = () => {
                                                         Diupload pada {new Date(paper.finalUploadedAt).toLocaleString('id-ID', { dateStyle: 'full', timeStyle: 'short' })}
                                                     </p>
 
-                                                    <a href={paper.finalFileUrl} target="_blank" rel="noreferrer" className="inline-flex items-center gap-2 text-sm font-medium text-indigo-600 hover:text-indigo-800">
+                                                    <a
+                                                        href={(() => {
+                                                            let path = paper.finalFileUrl || '';
+                                                            // Strip localhost if present in DB data
+                                                            path = path.replace('http://localhost:5000', '').replace('http://localhost:3000', '');
+                                                            const baseUrl = API_URL.replace(/\/api$/, '');
+                                                            return `${baseUrl}${path.startsWith('/') ? '' : '/'}${path}`;
+                                                        })()}
+                                                        target="_blank"
+                                                        rel="noreferrer"
+                                                        className="inline-flex items-center gap-2 text-sm font-medium text-indigo-600 hover:text-indigo-800"
+                                                    >
                                                         Download File <FileCheck size={14} />
                                                     </a>
                                                 </div>
@@ -255,7 +266,7 @@ const FinalSubmission: React.FC = () => {
                                                     <h5 className={`flex items-center gap-2 text-sm font-bold uppercase tracking-wider mb-4
                                                         ${paper.finalApprovalStatus === 'REVISION' ? 'text-rose-500' : 'text-slate-400'}
                                                     `}>
-                                                        <ShieldAlert size={14}/> Catatan Pembimbing
+                                                        <ShieldAlert size={14} /> Catatan Pembimbing
                                                     </h5>
                                                     <div className={`rounded-xl p-6 border relative
                                                         ${paper.finalApprovalStatus === 'REVISION'

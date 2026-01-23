@@ -127,7 +127,13 @@ const VerificationDashboard: React.FC = () => {
                                     <td className="p-4 border-b text-center">
                                         {paper.finalFileUrl && (
                                             <a
-                                                href={`${API_URL.replace(/\/api$/, '')}${paper.finalFileUrl}`}
+                                                href={(() => {
+                                                    let path = paper.finalFileUrl || '';
+                                                    // Strip localhost if present in DB data
+                                                    path = path.replace('http://localhost:5000', '').replace('http://localhost:3000', '');
+                                                    const baseUrl = API_URL.replace(/\/api$/, '');
+                                                    return `${baseUrl}${path.startsWith('/') ? '' : '/'}${path}`;
+                                                })()}
                                                 target="_blank"
                                                 rel="noreferrer"
                                                 className="inline-flex items-center gap-1 text-blue-600 hover:underline text-sm"
