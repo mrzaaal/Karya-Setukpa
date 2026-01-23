@@ -247,6 +247,7 @@ const FinalSubmission: React.FC = () => {
                                                             // Strip localhost if present in DB data
                                                             path = path.replace('http://localhost:5000', '').replace('http://localhost:3000', '');
                                                             const baseUrl = API_URL.replace(/\/api$/, '');
+                                                            if (path.startsWith('http')) return path;
                                                             return `${baseUrl}${path.startsWith('/') ? '' : '/'}${path}`;
                                                         })()}
                                                         target="_blank"

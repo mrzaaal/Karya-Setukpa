@@ -2,6 +2,7 @@ import { Response } from 'express';
 import { AuthRequest } from '../middleware/auth.js';
 import prisma from '../config/database.js';
 import { consistencyService } from '../services/consistencyService.js';
+import { supabase } from '../config/storage.js';
 import fs from 'fs';
 
 export const getAllPapers = async (req: AuthRequest, res: Response): Promise<void> => {
@@ -499,8 +500,32 @@ export const uploadFinalDocument = async (req: AuthRequest, res: Response): Prom
             return;
         }
 
+        // [Supabase Upload Logic]
         const file = req.file;
-        const fileUrl = `/uploads/${file.filename}`; // Assuming static serve or similar
+        const fileExt = file.originalname.split('.').pop();
+        const fileName = `${Date.now()}-${Math.round(Math.random() * 1E9)}.${fileExt}`;
+
+        // 1. Upload to Supabase
+        const { data: uploadData, error: uploadError } = await supabase
+            .storage
+            .from('paper-uploads')
+            .upload(fileName, file.buffer, {
+                contentType: file.mimetype,
+                upsert: false
+            });
+
+        if (uploadError) {
+            console.error('Supabase Upload Error:', uploadError);
+            throw new Error('Failed to upload file to storage');
+        }
+
+        // 2. Get Public URL
+        const { data: urlData } = supabase
+            .storage
+            .from('paper-uploads')
+            .getPublicUrl(fileName);
+
+        const fileUrl = urlData.publicUrl;
 
         const paper = await prisma.paper.update({
             where: { id },
@@ -509,21 +534,17 @@ export const uploadFinalDocument = async (req: AuthRequest, res: Response): Prom
                 finalFileName: file.originalname,
                 finalFileSize: file.size,
                 finalUploadedAt: new Date(),
-                finalApprovalStatus: 'PENDING', // Reset approval on new upload
-                consistencyStatus: 'PENDING_VERIFICATION' // Set status for Admin to check
+                finalApprovalStatus: 'PENDING',
+                consistencyStatus: 'PENDING_VERIFICATION'
             }
         });
 
         // [Consistency Check]
-        // Read file from disk (since Multer saved it)
+        // Use file buffer directly
         try {
-            if (file.path) {
-                const fileBuffer = fs.readFileSync(file.path);
-                await consistencyService.performConsistencyCheck(id, fileBuffer, file.mimetype);
-            }
+            await consistencyService.performConsistencyCheck(id, file.buffer, file.mimetype);
         } catch (checkError) {
             console.error('Consistency check failed (non-blocking):', checkError);
-            // We don't block the upload success, but status might remain 'PENDING_VERIFICATION' or 'UNCHECKED'
         }
 
         res.json({ paper, message: 'File uploaded successfully' });
