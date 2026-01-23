@@ -543,8 +543,30 @@ export const uploadFinalDocument = async (req: AuthRequest, res: Response): Prom
         // Use file buffer directly
         try {
             await consistencyService.performConsistencyCheck(id, file.buffer, file.mimetype);
-        } catch (checkError) {
-            console.error('Consistency check failed (non-blocking):', checkError);
+        } catch (checkError: any) {
+            console.error('Consistency check failed (initially):', checkError);
+
+            // FALLBACK: Try downloading from Supabase URL and checking again
+            // This handles cases where local buffer might be 0 or corrupt
+            if (fileUrl) {
+                try {
+                    console.log('Attempting fallback consistency check via Supabase URL:', fileUrl);
+                    // Dynamically import axios if not available globally or use fetch
+                    const axios = (await import('axios')).default;
+
+                    const response = await axios.get(fileUrl, { responseType: 'arraybuffer' });
+                    const remoteBuffer = Buffer.from(response.data);
+
+                    console.log(`Fallback: Downloaded ${remoteBuffer.length} bytes from Supabase.`);
+                    await consistencyService.performConsistencyCheck(id, remoteBuffer, file.mimetype);
+                    console.log('Fallback consistency check SUCCEEDED.');
+                } catch (fallbackError) {
+                    console.error('Fallback consistency check also failed:', fallbackError);
+                    // The original error is already logged in DB by the service in the first attempt,
+                    // but we might want to update it to say fallback also failed? 
+                    // ConsistencyService logs to DB on error.
+                }
+            }
         }
 
         res.json({ paper, message: 'File uploaded successfully' });
