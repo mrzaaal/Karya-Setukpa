@@ -4,7 +4,14 @@ import { createRequire } from 'module';
 const require = createRequire(import.meta.url);
 const pdfModule = require('pdf-parse');
 // Handle CommonJS/ESM interop for pdf-parse
-const pdf = typeof pdfModule === 'function' ? pdfModule : pdfModule.default;
+let pdf = pdfModule;
+if (typeof pdf !== 'function' && typeof pdf.default === 'function') {
+    pdf = pdf.default;
+}
+// Validate pdf function availability
+if (typeof pdf !== 'function') {
+    console.error('Failed to initialize pdf-parse. Module:', pdfModule);
+}
 import stringSimilarity from 'string-similarity';
 import { Paper } from '@prisma/client';
 
