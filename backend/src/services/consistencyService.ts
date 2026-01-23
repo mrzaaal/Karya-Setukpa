@@ -92,7 +92,7 @@ export class ConsistencyService {
                 // Using positive lookbehind or simply split and cleanup
                 .split(/[.!?]+/)
                 .map(s => this.aggressiveNormalize(s)) // Normalize each sentence
-                .filter(s => s.split(' ').length >= 5); // KEEP ONLY LONG SENTENCES (>=5 words)
+                .filter(s => s.split(' ').length >= 10); // KEEP ONLY LONG SENTENCES (>=10 words) - Explicitly ignores short templates
         };
 
         const sourceSentences = getSentences(source);
