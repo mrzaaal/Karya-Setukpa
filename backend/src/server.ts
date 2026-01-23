@@ -79,11 +79,19 @@ app.use('/api/auth/register', authLimiter);
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
+import fs from 'fs';
+
 // ============================================
 // Static Files
 // ============================================
 const uploadDir = path.join(process.cwd(), 'uploads');
 const publicDir = path.join(process.cwd(), 'public');
+
+// Ensure uploads directory exists
+if (!fs.existsSync(uploadDir)) {
+    console.log('Creating uploads directory...');
+    fs.mkdirSync(uploadDir, { recursive: true });
+}
 
 logger.info(`Serving uploads from: ${uploadDir}`);
 logger.info(`Serving frontend from: ${publicDir}`);

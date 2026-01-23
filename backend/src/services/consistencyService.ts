@@ -83,7 +83,15 @@ export class ConsistencyService {
             // 3. Normalize and Compare
             // Editor content might be HTML (Rich Text), need to strip tags potentially?
             // Assuming 'content' field in Paper is HTML from Tiptap/TinyMCE.
-            const editorText = this.stripHtml(paper.content || '');
+            let editorText = this.stripHtml(paper.content || '');
+
+            // FIX: If paper.content is empty (new template structure), aggregate from structure chapters
+            if (!editorText.trim() && paper.structure && Array.isArray(paper.structure)) {
+                console.log(`Consistency Check: Aggregating content from ${paper.structure.length} chapters`);
+                editorText = (paper.structure as any[])
+                    .map((ch: any) => this.stripHtml(ch.content || ''))
+                    .join(' ');
+            }
 
             const score = this.calculateSimilarity(editorText, fileText);
             console.log(`Consistency Check for Paper ${paperId}: Score ${score}%`);
