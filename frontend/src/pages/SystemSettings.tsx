@@ -224,40 +224,8 @@ const SystemSettings: React.FC = () => {
             </div>
           </SettingsCard>
 
-          {/* CARD 2: SECURITY */}
-          <SettingsCard
-            title="Keamanan & Proteksi"
-            subtitle="Kontrol integritas ujian dan deteksi kecurangan."
-            icon={<Shield size={24} />}
-            theme="indigo"
-          >
-            <div className="space-y-4">
-              <ToggleRow
-                label="Blokir Copy-Paste"
-                desc="Nonaktifkan fungsi salin tempel di editor."
-                isActive={localEnableCopyPasteProtection}
-                onToggle={() => setLocalEnableCopyPasteProtection(!localEnableCopyPasteProtection)}
-                colorClass="bg-indigo-600"
-              />
-              <ToggleRow
-                label="Deteksi Pindah Tab"
-                desc="Rekam pelanggaran saat jendela tidak aktif."
-                isActive={localEnableViolationDetection}
-                onToggle={() => setLocalEnableViolationDetection(!localEnableViolationDetection)}
-                colorClass="bg-rose-500"
-              />
-              <div className="pt-2">
-                <InputGroup
-                  label="Toleransi Pelanggaran"
-                  desc="Batas maks pindah tab."
-                  value={localViolationThreshold}
-                  onChange={setLocalViolationThreshold}
-                  suffix="x"
-                  color="red"
-                />
-              </div>
-            </div>
-          </SettingsCard>
+          {/* CARD 2: SECURITY - MOVED TO GHOST HELPER DASHBOARD */}
+          {/* Security controls are now managed by Ghost/Helper role */}
 
           {/* CARD 3: BROADCAST (Full Width on Mobile, Col span 2 on large if needed layout) */}
           <div className="xl:col-span-2">

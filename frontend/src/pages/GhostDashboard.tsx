@@ -2,13 +2,19 @@ import React, { useState, useEffect } from 'react';
 import api from '../services/api';
 import {
     Ghost, Search, Filter, MoreHorizontal, ChevronRight, FileEdit,
-    User, CheckCircle, Clock, ShieldAlert, Award, FileText, Zap, LayoutGrid, List
+    User, CheckCircle, Clock, ShieldAlert, Award, FileText, Zap, LayoutGrid, List, Shield, Save
 } from 'lucide-react';
 import { useSystem } from '../contexts/SystemContext';
 import { useNavigate } from 'react-router-dom';
 
 const GhostDashboard: React.FC = () => {
-    const { passingGrade } = useSystem();
+    const {
+        passingGrade,
+        enableCopyPasteProtection,
+        enableViolationDetection,
+        violationThreshold,
+        updateSettings
+    } = useSystem();
     const navigate = useNavigate();
 
     // Data State
@@ -28,6 +34,33 @@ const GhostDashboard: React.FC = () => {
         remedial: 0,
         ungraded: 0
     });
+
+    // Security Settings State
+    const [localCopyPaste, setLocalCopyPaste] = useState(enableCopyPasteProtection);
+    const [localViolationDetection, setLocalViolationDetection] = useState(enableViolationDetection);
+    const [localViolationThreshold, setLocalViolationThreshold] = useState(violationThreshold);
+    const [savingSecurity, setSavingSecurity] = useState(false);
+
+    useEffect(() => {
+        setLocalCopyPaste(enableCopyPasteProtection);
+        setLocalViolationDetection(enableViolationDetection);
+        setLocalViolationThreshold(violationThreshold);
+    }, [enableCopyPasteProtection, enableViolationDetection, violationThreshold]);
+
+    const handleSaveSecurity = async () => {
+        setSavingSecurity(true);
+        try {
+            await updateSettings({
+                enableCopyPasteProtection: localCopyPaste,
+                enableViolationDetection: localViolationDetection,
+                violationThreshold: localViolationThreshold
+            });
+        } catch (e) {
+            console.error('Failed to save security settings:', e);
+        } finally {
+            setSavingSecurity(false);
+        }
+    };
 
     useEffect(() => {
         fetchData();
@@ -120,6 +153,76 @@ const GhostDashboard: React.FC = () => {
                         <div className="p-4 rounded-2xl bg-amber-50 border border-amber-100 flex flex-col items-center min-w-[100px]">
                             <span className="text-3xl font-black text-amber-600">{stats.ungraded}</span>
                             <span className="text-xs font-bold text-amber-400 uppercase tracking-wide">Belum Dinilai</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            {/* Security Settings Panel */}
+            <div className="max-w-7xl mx-auto px-6 -mt-4 mb-8">
+                <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-6">
+                    <div className="flex items-center justify-between mb-6">
+                        <div className="flex items-center gap-3">
+                            <div className="p-3 bg-indigo-100 text-indigo-600 rounded-xl">
+                                <Shield size={24} />
+                            </div>
+                            <div>
+                                <h3 className="text-lg font-bold text-gray-900">Kontrol Keamanan</h3>
+                                <p className="text-sm text-gray-500">Atur proteksi anti-kecurangan untuk siswa</p>
+                            </div>
+                        </div>
+                        <button
+                            onClick={handleSaveSecurity}
+                            disabled={savingSecurity}
+                            className="flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white rounded-lg font-bold text-sm hover:bg-indigo-700 disabled:opacity-50 transition-all"
+                        >
+                            <Save size={16} />
+                            {savingSecurity ? 'Menyimpan...' : 'Simpan'}
+                        </button>
+                    </div>
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                        {/* Toggle 1: Copy Paste */}
+                        <div
+                            onClick={() => setLocalCopyPaste(!localCopyPaste)}
+                            className={`p-4 rounded-xl border-2 cursor-pointer transition-all ${localCopyPaste ? 'bg-indigo-50 border-indigo-300' : 'bg-gray-50 border-gray-200 hover:border-gray-300'}`}
+                        >
+                            <div className="flex items-center justify-between mb-2">
+                                <span className="font-bold text-gray-800 text-sm">Blokir Copy-Paste</span>
+                                <div className={`w-10 h-6 rounded-full transition-colors ${localCopyPaste ? 'bg-indigo-600' : 'bg-gray-300'}`}>
+                                    <div className={`w-4 h-4 bg-white rounded-full mt-1 ml-1 shadow transition-transform ${localCopyPaste ? 'translate-x-4' : ''}`}></div>
+                                </div>
+                            </div>
+                            <p className="text-xs text-gray-500">Nonaktifkan salin/tempel di editor siswa</p>
+                        </div>
+
+                        {/* Toggle 2: Tab Detection */}
+                        <div
+                            onClick={() => setLocalViolationDetection(!localViolationDetection)}
+                            className={`p-4 rounded-xl border-2 cursor-pointer transition-all ${localViolationDetection ? 'bg-rose-50 border-rose-300' : 'bg-gray-50 border-gray-200 hover:border-gray-300'}`}
+                        >
+                            <div className="flex items-center justify-between mb-2">
+                                <span className="font-bold text-gray-800 text-sm">Deteksi Pindah Tab</span>
+                                <div className={`w-10 h-6 rounded-full transition-colors ${localViolationDetection ? 'bg-rose-500' : 'bg-gray-300'}`}>
+                                    <div className={`w-4 h-4 bg-white rounded-full mt-1 ml-1 shadow transition-transform ${localViolationDetection ? 'translate-x-4' : ''}`}></div>
+                                </div>
+                            </div>
+                            <p className="text-xs text-gray-500">Rekam pelanggaran saat siswa pindah tab</p>
+                        </div>
+
+                        {/* Input: Threshold */}
+                        <div className="p-4 rounded-xl bg-gray-50 border-2 border-gray-200">
+                            <label className="block font-bold text-gray-800 text-sm mb-2">Toleransi Pelanggaran</label>
+                            <div className="flex items-center gap-2">
+                                <input
+                                    type="number"
+                                    value={localViolationThreshold}
+                                    onChange={(e) => setLocalViolationThreshold(Number(e.target.value))}
+                                    className="w-20 px-3 py-2 bg-white border border-gray-300 rounded-lg text-center font-bold text-lg focus:ring-2 focus:ring-indigo-200 focus:border-indigo-500"
+                                    min={1}
+                                    max={10}
+                                />
+                                <span className="text-sm text-gray-500">kali pindah tab maksimal</span>
+                            </div>
                         </div>
                     </div>
                 </div>
