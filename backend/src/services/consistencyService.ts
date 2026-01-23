@@ -82,12 +82,17 @@ export class ConsistencyService {
             // 2. Extract Text from File
             const fileText = await this.extractText(fileBuffer, mimetype);
 
+            let debugLogs: string[] = [];
+            const log = (msg: string) => {
+                console.log(msg);
+                debugLogs.push(msg);
+            };
+
             // 3. Normalize and Compare
             // Editor content might be HTML (Rich Text), need to strip tags potentially?
             // Assuming 'content' field in Paper is HTML from Tiptap/TinyMCE.
             let editorText = this.stripHtml(paper.content || '');
 
-            // FIX: If paper.content is empty (new template structure), aggregate from structure chapters
             // FIX: If paper.content is empty (new template structure), aggregate from structure chapters
             if (!editorText.trim()) {
                 let structure: any[] = [];
@@ -98,22 +103,35 @@ export class ConsistencyService {
                 } else if (typeof paper.structure === 'string') {
                     try {
                         structure = JSON.parse(paper.structure);
-                    } catch (e) {
-                        console.error('Failed to parse paper structure JSON:', e);
+                    } catch (e: any) {
+                        log(`Error parsing structure: ${e.message}`);
                         structure = [];
                     }
                 }
 
                 if (structure.length > 0) {
-                    console.log(`Consistency Check: Aggregating content from ${structure.length} chapters`);
+                    log(`[DEBUG] Consistency Check: Found ${structure.length} chapters.`);
+                    // Log first chapter content presence
+                    log(`[DEBUG] Ch 1 content type: ${typeof structure[0].content}, Length: ${structure[0].content?.length}`);
+
                     editorText = structure
-                        .map((ch: any) => this.stripHtml(ch.content || ''))
+                        .map((ch: any) => {
+                            const txt = this.stripHtml(ch.content || '');
+                            // console.log(`[DEBUG] Ch content length after strip: ${txt.length}`);
+                            return txt;
+                        })
                         .join(' ');
+
+                    log(`[DEBUG] Final Aggregated Editor Text Length: ${editorText.length}`);
+                } else {
+                    log('[DEBUG] Structure is empty array.');
                 }
+            } else {
+                log(`[DEBUG] Using main paper content (Length: ${editorText.length})`);
             }
 
             const score = this.calculateSimilarity(editorText, fileText);
-            console.log(`Consistency Check for Paper ${paperId}: Score ${score}%`);
+            log(`Consistency Check for Paper ${paperId}: Score ${score}% (Editor: ${editorText.length} vs File: ${fileText.length})`);
 
             // Determine Status
             // If score is very high (e.g. >90%), maybe ideally auto-verify? 
@@ -130,7 +148,8 @@ export class ConsistencyService {
                         checkedAt: new Date().toISOString(),
                         editorLength: editorText.length,
                         fileLength: fileText.length,
-                        score: score
+                        score: score,
+                        debug: debugLogs
                     }
                 },
             });

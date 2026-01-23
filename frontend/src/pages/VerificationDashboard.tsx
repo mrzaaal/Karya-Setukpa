@@ -116,9 +116,14 @@ const VerificationDashboard: React.FC = () => {
                                         {/* DEBUG INFO */}
                                         {/* @ts-ignore */}
                                         {paper.consistencyLog && (
-                                            <div className="text-[10px] text-gray-400 mt-1 font-mono">
+                                            <div
+                                                className="text-[10px] text-gray-400 mt-1 font-mono cursor-help"
+                                                title={paper.consistencyLog.debug ? paper.consistencyLog.debug.join('\n') : "No logs"}
+                                            >
                                                 {/* @ts-ignore */}
                                                 Edit: {paper.consistencyLog.editorLength} | File: {paper.consistencyLog.fileLength}
+                                                {/* @ts-ignore */}
+                                                {paper.consistencyLog.debug && " ⓘ"}
                                             </div>
                                         )}
                                     </td>
