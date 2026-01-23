@@ -2,7 +2,9 @@ import prisma from '../lib/prisma.js';
 import mammoth from 'mammoth';
 import { createRequire } from 'module';
 const require = createRequire(import.meta.url);
-const pdf = require('pdf-parse');
+const pdfModule = require('pdf-parse');
+// Handle CommonJS/ESM interop for pdf-parse
+const pdf = typeof pdfModule === 'function' ? pdfModule : pdfModule.default;
 import stringSimilarity from 'string-similarity';
 import { Paper } from '@prisma/client';
 
