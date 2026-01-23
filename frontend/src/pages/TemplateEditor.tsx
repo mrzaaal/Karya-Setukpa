@@ -87,17 +87,31 @@ const ChapterCard: React.FC<{
     return (
         <div className="bg-gray-50 border border-gray-200 rounded-xl p-5 space-y-4">
             <div className="flex justify-between items-start gap-4">
-                <div className="flex-grow">
-                    <label className="block text-xs font-bold text-gray-500 uppercase tracking-wide mb-1">
-                        Judul BAB {index + 1}
-                    </label>
-                    <input
-                        type="text"
-                        value={page.name}
-                        onChange={(e) => onUpdate({ ...page, name: e.target.value })}
-                        placeholder="Contoh: PENDAHULUAN"
-                        className="w-full px-4 py-2 border border-gray-300 rounded-lg text-lg font-bold text-gray-800 placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                    />
+                <div className="flex-grow grid grid-cols-12 gap-4">
+                    <div className="col-span-8 space-y-1">
+                        <label className="block text-xs font-bold text-gray-500 uppercase tracking-wide">
+                            Judul BAB {index + 1}
+                        </label>
+                        <input
+                            type="text"
+                            value={page.name}
+                            onChange={(e) => onUpdate({ ...page, name: e.target.value })}
+                            placeholder="Contoh: PENDAHULUAN"
+                            className="w-full px-4 py-2 border border-gray-300 rounded-lg text-lg font-bold text-gray-800 placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                        />
+                    </div>
+                    <div className="col-span-4 space-y-1">
+                        <label className="block text-xs font-bold text-gray-500 uppercase tracking-wide">
+                            Minimum Kata
+                        </label>
+                        <input
+                            type="number"
+                            value={page.minWords || ''}
+                            onChange={(e) => onUpdate({ ...page, minWords: parseInt(e.target.value) || 0 })}
+                            placeholder="Contoh: 500"
+                            className="w-full px-4 py-2 border border-gray-300 rounded-lg text-lg font-bold text-blue-600 placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                        />
+                    </div>
                 </div>
                 <button
                     onClick={onDelete}
@@ -190,7 +204,8 @@ const TemplateEditor: React.FC = () => {
             name: '',
             order: template.pages.length,
             structure: [],
-            numbering: { type: 'none', position: 'none' }
+            numbering: { type: 'none', position: 'none' },
+            minWords: 500 // Default minimum words per chapter
         };
         setTemplate(prev => ({
             ...prev,
@@ -271,10 +286,15 @@ const TemplateEditor: React.FC = () => {
 
                 <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 flex gap-3 text-blue-800 text-sm">
                     <Info className="shrink-0 mt-0.5" size={18} />
-                    <p>
-                        Buatlah struktur BAB sesuai urutan logika makalah. Siswa akan mengerjakan setiap BAB secara bertahap.
-                        Setiap sub-bab akan menjadi kolom isian terpisah untuk siswa.
-                    </p>
+                    <div>
+                        <p className="mb-2">
+                            Buatlah struktur BAB sesuai urutan logika makalah. Siswa akan mengerjakan setiap BAB secara bertahap.
+                        </p>
+                        <p className="text-xs text-blue-600">
+                            <strong>💡 Tip:</strong> Atur <strong>Minimum Kata</strong> per BAB untuk memastikan siswa menulis dengan jumlah kata yang cukup.
+                            Anda juga dapat mengatur target kata per sub-bab di bawahnya.
+                        </p>
+                    </div>
                 </div>
 
                 <div className="space-y-6">

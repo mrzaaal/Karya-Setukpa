@@ -10,7 +10,7 @@ interface SystemSettings {
   passingGrade: number;
   systemAnnouncement: string;
   submissionDeadline?: string;
-  maxPlagiarismScore: number;
+  integrityTolerance: number;
   enableCopyPasteProtection: boolean;
   enableViolationDetection: boolean;
 }
@@ -38,7 +38,7 @@ export const SystemProvider: React.FC<{ children: ReactNode }> = ({ children }) 
     violationThreshold: 3,
     passingGrade: 70,
     systemAnnouncement: '',
-    maxPlagiarismScore: 25,
+    integrityTolerance: 10,
     enableCopyPasteProtection: false,
     enableViolationDetection: true
   });

@@ -19,7 +19,7 @@ import { Toaster, toast } from 'react-hot-toast';
 const SystemSettings: React.FC = () => {
   const {
     isSystemOpen, violationThreshold, passingGrade,
-    systemAnnouncement, maxPlagiarismScore,
+    systemAnnouncement, integrityTolerance,
     enableCopyPasteProtection, enableViolationDetection,
     toggleSystemStatus, updateSettings, broadcastAnnouncement, retractAnnouncement,
     announcements, fetchAnnouncements, deleteAnnouncement
@@ -29,7 +29,7 @@ const SystemSettings: React.FC = () => {
   const [localViolationThreshold, setLocalViolationThreshold] = useState(violationThreshold);
   const [localPassingGrade, setLocalPassingGrade] = useState(passingGrade);
   const [localAnnouncement, setLocalAnnouncement] = useState(systemAnnouncement);
-  const [localMaxPlagiarismScore, setLocalMaxPlagiarismScore] = useState(maxPlagiarismScore);
+  const [localIntegrityTolerance, setLocalIntegrityTolerance] = useState(integrityTolerance);
   const [localEnableCopyPasteProtection, setLocalEnableCopyPasteProtection] = useState(enableCopyPasteProtection);
   const [localEnableViolationDetection, setLocalEnableViolationDetection] = useState(enableViolationDetection);
   const [broadcastTarget, setBroadcastTarget] = useState('ALL');
@@ -58,10 +58,10 @@ const SystemSettings: React.FC = () => {
 
     setLocalPassingGrade(passingGrade);
     setLocalAnnouncement(systemAnnouncement);
-    setLocalMaxPlagiarismScore(maxPlagiarismScore);
+    setLocalIntegrityTolerance(integrityTolerance);
     setLocalEnableCopyPasteProtection(enableCopyPasteProtection);
     setLocalEnableViolationDetection(enableViolationDetection);
-  }, [violationThreshold, passingGrade, systemAnnouncement, maxPlagiarismScore, enableCopyPasteProtection, enableViolationDetection]);
+  }, [violationThreshold, passingGrade, systemAnnouncement, integrityTolerance, enableCopyPasteProtection, enableViolationDetection]);
 
   const handleSave = async () => {
     setIsSaving(true);
@@ -70,7 +70,7 @@ const SystemSettings: React.FC = () => {
         violationThreshold: localViolationThreshold,
         passingGrade: localPassingGrade,
         systemAnnouncement: localAnnouncement,
-        maxPlagiarismScore: localMaxPlagiarismScore,
+        integrityTolerance: localIntegrityTolerance,
         enableCopyPasteProtection: localEnableCopyPasteProtection,
         enableViolationDetection: localEnableViolationDetection
       });
@@ -214,10 +214,10 @@ const SystemSettings: React.FC = () => {
                 color="blue"
               />
               <InputGroup
-                label="Verifikasi Integritas"
-                desc="Batas skor untuk konsistensi dokumen."
-                value={localMaxPlagiarismScore}
-                onChange={setLocalMaxPlagiarismScore}
+                label="Toleransi Verifikasi Integritas"
+                desc="Perbedaan maksimal yang diizinkan antara dokumen editor dan file upload."
+                value={localIntegrityTolerance}
+                onChange={setLocalIntegrityTolerance}
                 suffix="%"
                 color="green"
               />

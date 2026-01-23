@@ -177,10 +177,9 @@ model Paper {
   finalApprovedBy     String?
 
   // Integrity / Consistency Check
-  // Integrity / Consistency Check (Temporarily disabled due to migration issues)
-  // consistencyScore    Float?    // 0.0 - 100.0
-  // consistencyStatus   String?   @default("UNCHECKED") // UNCHECKED, PENDING_VERIFICATION, VERIFIED, REJECTED
-  // consistencyLog      Json?     // Stores diff details or debug info
+  consistencyScore    Float?    // 0.0 - 100.0
+  consistencyStatus   String?   @default("UNCHECKED") // UNCHECKED, PENDING_VERIFICATION, VERIFIED, REJECTED
+  consistencyLog      Json?     // Stores diff details or debug info
 
   Assignment      Assignment @relation(fields: [assignmentId], references: [id], onDelete: Cascade)
   User            User       @relation(fields: [userId], references: [id], onDelete: Cascade)
@@ -194,7 +193,7 @@ model Paper {
   @@index([userId])
   @@index([contentApprovalStatus])
   @@index([finalApprovalStatus])
-  // @@index([consistencyStatus])
+  @@index([consistencyStatus])
 }
 
 model PaperTemplate {
@@ -218,7 +217,7 @@ model SystemSetting {
   violationThreshold Int      @default(3)
   announcement       String?  @db.Text
   submissionDeadline DateTime?
-  maxPlagiarismScore Float    @default(25.0) // Percentage
+  integrityTolerance Float    @default(10.0) // Percentage - max allowed difference between editor and uploaded file
   enableCopyPasteProtection Boolean @default(false)
   enableViolationDetection Boolean @default(true)
   

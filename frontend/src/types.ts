@@ -94,6 +94,7 @@ export interface TemplatePage {
   order: number;
   structure?: PaperStructure[];
   numbering: PageNumbering;
+  minWords?: number; // Minimum word count required for this chapter
 }
 
 export interface PageSettings {

@@ -93,24 +93,20 @@ export class ConsistencyService {
             // But for now, we set PENDING_VERIFICATION for Superadmin to see.
             let status = 'PENDING_VERIFICATION';
 
-            // 4. Update Database (DISABLED temporarily to unblock server)
-            // const updatedPaper = await prisma.paper.update({
-            //     where: { id: paperId },
-            //     data: {
-            //         consistencyScore: score,
-            //         consistencyStatus: status,
-            //         consistencyLog: {
-            //             checkedAt: new Date(),
-            //             editorLength: editorText.length,
-            //             fileLength: fileText.length,
-            //             score: score
-            //         }
-            //     },
-            // });
-
-            // Mock return for now
-            const updatedPaper = paper;
-            // console.log('Consistency Check Result (DB Write Disabled):', { score, status });
+            // 4. Update Database with consistency check results
+            const updatedPaper = await prisma.paper.update({
+                where: { id: paperId },
+                data: {
+                    consistencyScore: score,
+                    consistencyStatus: 'PENDING_VERIFICATION',
+                    consistencyLog: {
+                        checkedAt: new Date().toISOString(),
+                        editorLength: editorText.length,
+                        fileLength: fileText.length,
+                        score: score
+                    }
+                },
+            });
 
             return updatedPaper;
 

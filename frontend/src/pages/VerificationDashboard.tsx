@@ -1,7 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import { paperService } from '../services/paperService';
 import toast from 'react-hot-toast';
-import { CheckCircle, XCircle, AlertTriangle, FileText, Download } from 'lucide-react';
+import { CheckCircle, XCircle, AlertTriangle, FileText, Download, Info } from 'lucide-react';
+import { useSystem } from '../contexts/SystemContext';
 
 interface PendingPaper {
     id: string;
@@ -22,6 +23,11 @@ interface PendingPaper {
 const VerificationDashboard: React.FC = () => {
     const [papers, setPapers] = useState<PendingPaper[]>([]);
     const [loading, setLoading] = useState(true);
+    const { integrityTolerance } = useSystem();
+
+    // Calculate minimum required score based on tolerance
+    // e.g., if tolerance is 10%, then minimum score should be 90%
+    const minRequiredScore = 100 - integrityTolerance;
 
     useEffect(() => {
         fetchPapers();
@@ -54,8 +60,8 @@ const VerificationDashboard: React.FC = () => {
 
     const getScoreColor = (score: number | null) => {
         if (score === null) return 'text-gray-500';
-        if (score >= 90) return 'text-green-600 font-bold';
-        if (score >= 70) return 'text-yellow-600 font-bold';
+        if (score >= minRequiredScore) return 'text-green-600 font-bold';
+        if (score >= minRequiredScore - 20) return 'text-yellow-600 font-bold';
         return 'text-red-600 font-bold';
     };
 
@@ -63,10 +69,21 @@ const VerificationDashboard: React.FC = () => {
 
     return (
         <div className="p-6">
-            <h1 className="text-2xl font-bold mb-6 flex items-center gap-2">
+            <h1 className="text-2xl font-bold mb-4 flex items-center gap-2">
                 <FileText className="w-8 h-8 text-indigo-600" />
                 Verifikasi Integritas Naskah
             </h1>
+
+            {/* Info Banner */}
+            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6 flex items-start gap-3">
+                <Info className="w-5 h-5 text-blue-600 mt-0.5 flex-shrink-0" />
+                <div className="text-sm text-blue-800">
+                    <p className="font-medium mb-1">Cara Kerja Verifikasi Integritas</p>
+                    <p>Sistem membandingkan konten dari <strong>editor online</strong> dengan <strong>dokumen final yang diunggah</strong>.
+                        Skor menunjukkan persentase kesamaan teks. Toleransi saat ini: <strong>{integrityTolerance}%</strong> (skor minimum: <strong>{minRequiredScore}%</strong>).</p>
+                    <p className="mt-1 text-xs text-blue-600">Skor di bawah {minRequiredScore}% menandakan kemungkinan ketidaksesuaian dokumen.</p>
+                </div>
+            </div>
 
             <div className="bg-white rounded-lg shadow overflow-hidden">
                 {papers.length === 0 ? (
@@ -100,9 +117,9 @@ const VerificationDashboard: React.FC = () => {
                                         <div className={`text-lg ${getScoreColor(paper.consistencyScore)}`}>
                                             {paper.consistencyScore !== null ? `${paper.consistencyScore}%` : 'N/A'}
                                         </div>
-                                        {paper.consistencyScore !== null && paper.consistencyScore < 70 && (
+                                        {paper.consistencyScore !== null && paper.consistencyScore < minRequiredScore && (
                                             <div className="text-xs text-red-500 mt-1 flex items-center justify-center gap-1">
-                                                <AlertTriangle size={12} /> Suspicious
+                                                <AlertTriangle size={12} /> Mencurigakan
                                             </div>
                                         )}
                                     </td>

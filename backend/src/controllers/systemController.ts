@@ -32,7 +32,7 @@ export const getSystemSettings = async (req: AuthRequest, res: Response): Promis
 
 export const updateSystemSettings = async (req: AuthRequest, res: Response): Promise<void> => {
     try {
-        const { isSystemOpen, passingGrade, violationThreshold, announcement, submissionDeadline, maxPlagiarismScore } = req.body;
+        const { isSystemOpen, passingGrade, violationThreshold, announcement, submissionDeadline, integrityTolerance } = req.body;
 
         // Ensure settings exist first
         await getOrCreateSettings();
@@ -45,7 +45,7 @@ export const updateSystemSettings = async (req: AuthRequest, res: Response): Pro
                 violationThreshold,
                 announcement,
                 submissionDeadline,
-                maxPlagiarismScore,
+                integrityTolerance,
                 enableCopyPasteProtection: req.body.enableCopyPasteProtection,
                 enableViolationDetection: req.body.enableViolationDetection
             }
