@@ -205,12 +205,19 @@ const GhostDashboard: React.FC = () => {
                                                 <p className="text-xs text-gray-500 font-mono">{item.studentId}</p>
                                             </div>
                                         </div>
-                                        {item.finalScore > 0 && (
-                                            <div className={`px-2 py-1 rounded-lg text-xs font-bold
-                        ${item.finalScore >= passingGrade ? 'bg-emerald-50 text-emerald-600' : 'bg-rose-50 text-rose-600'}`}>
-                                                {item.finalScore}
-                                            </div>
-                                        )}
+                                        <div className="flex items-center gap-2">
+                                            {item.contentApprovalStatus === 'REVISION' && (
+                                                <div className="px-2 py-1 rounded-lg text-xs font-bold bg-orange-100 text-orange-600 animate-pulse">
+                                                    REVISI
+                                                </div>
+                                            )}
+                                            {item.finalScore > 0 && (
+                                                <div className={`px-2 py-1 rounded-lg text-xs font-bold
+                            ${item.finalScore >= passingGrade ? 'bg-emerald-50 text-emerald-600' : 'bg-rose-50 text-rose-600'}`}>
+                                                    {item.finalScore}
+                                                </div>
+                                            )}
+                                        </div>
                                     </div>
 
                                     <div className="flex-1 mb-6">
@@ -257,13 +264,20 @@ const GhostDashboard: React.FC = () => {
                                                 <div className="text-xs text-gray-400 mt-1">{item.advisorName}</div>
                                             </td>
                                             <td className="px-6 py-4">
-                                                {item.finalScore > 0 ? (
-                                                    <span className={`px-2 py-1 rounded-lg text-xs font-bold ${item.finalScore >= passingGrade ? 'bg-emerald-100 text-emerald-700' : 'bg-rose-100 text-rose-700'}`}>
-                                                        {item.finalScore}
-                                                    </span>
-                                                ) : (
-                                                    <span className="text-gray-400 text-xs">-</span>
-                                                )}
+                                                <div className="flex items-center gap-2">
+                                                    {item.contentApprovalStatus === 'REVISION' && (
+                                                        <span className="px-2 py-1 rounded-lg text-xs font-bold bg-orange-100 text-orange-700 animate-pulse">
+                                                            REVISI
+                                                        </span>
+                                                    )}
+                                                    {item.finalScore > 0 ? (
+                                                        <span className={`px-2 py-1 rounded-lg text-xs font-bold ${item.finalScore >= passingGrade ? 'bg-emerald-100 text-emerald-700' : 'bg-rose-100 text-rose-700'}`}>
+                                                            {item.finalScore}
+                                                        </span>
+                                                    ) : (
+                                                        <span className="text-gray-400 text-xs">-</span>
+                                                    )}
+                                                </div>
                                             </td>
                                             <td className="px-6 py-4 text-right">
                                                 <button

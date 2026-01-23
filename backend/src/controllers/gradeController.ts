@@ -326,6 +326,7 @@ export const getAllGrades = async (req: AuthRequest, res: Response): Promise<voi
                     advisorName: advisorName,
                     examinerName: examinerName,
                     finalScore: score,
+                    contentApprovalStatus: paper.contentApprovalStatus || 'PENDING',
                     updatedAt: gradedAt
                 };
             } catch (innerError) {
