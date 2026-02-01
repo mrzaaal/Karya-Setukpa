@@ -48,11 +48,9 @@ const logger = winston.createLogger({
     ],
 });
 
-// Add console transport in development
-if (!isProduction) {
-    logger.add(new winston.transports.Console({
-        format: consoleFormat
-    }));
-}
+// Add console transport (Always enable for Container/PaaS environments)
+logger.add(new winston.transports.Console({
+    format: isProduction ? winston.format.json() : consoleFormat
+}));
 
 export default logger;
